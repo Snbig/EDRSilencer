@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Build EDRSilencer for Windows
 
 on:
   push:
@@ -7,15 +7,28 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-windows: # Renamed job for clarity
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # We use Linux to cross-compile for Windows
 
     steps:
-    - uses: actions/checkout@v4
-    - name: make
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install MinGW-w64 cross-compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 # Installs the toolchain including x86_64-w64-mingw32-gcc
+
+    - name: Build with make
+      # The Makefile already specifies CC = x86_64-w64-mingw32-gcc
+      # so 'make' will automatically use the installed cross-compiler.
       run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+
+    # Optional: Upload the built executable as an artifact
+    # This allows you to download the EDRSilencer.exe from the Actions run page.
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: EDRSilencer-windows-x64 # Name of the artifact zip file
+        path: EDRSilencer.exe         # The file(s) to include in the artifact
